@@ -5,278 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asteroids</title>
     
-    
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
 
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <img src="/images/cockpit1.png" style="position:absolute; width:100%; height:100%"/>
+
+    <div id="container">
+        <div id="game-over" style="display: none;">
+            <h1>Game Over</h1>
+            <p>Score: <span id="score"></span></p>
+          </div>
+        <div id="points-display">Points: 0</div>
+    </div>
+    <button id="button1">press me</button>
+   
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
         {
             "imports": {
-                "three": "https://unpkg.com/three@0.138.0/build/three.module.js",
+                "three": "https://unpkg.com/three@0.152.0/build/three.module.js",
                 "three/addons/":"https://threejs.org/examples/jsm/"
             }
         }
     </script>
-    <button id="button1">press me</button>
-    
-    <script type="module">
-        import * as THREE from 'three'
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-        import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js'
 
-
-        //INIT THREE JS
-        var scene = new THREE.Scene();
-        var camera = new THREE.PerspectiveCamera( 45, window.innerWidth/window.innerHeight*0.5, 0.1, 1000 );
-        var renderer = new THREE.WebGLRenderer({antialias: true});
-        var loader  = new THREE.TextureLoader(),sky = loader.load( "images/sky.jpg"),asteroid_text = loader.load("images/asteroid1.png"); 
-
-        
-
-
-        scene.background = sky;
-
-        // Create a variable to keep track of the number of asteroids created
-        let numAsteroids = 0;
-        let asteroids = [];
-
-        function createAsteroids() {
-                let loader = new THREE.TextureLoader();
-                let asteroidTexture1 = loader.load("images/asteroid1.png");
-                let asteroidTexture2 = loader.load("images/asteroid2.png");
-                let asteroidTexture3 = loader.load("images/asteroid3.png");
-                let asteroidTexture4 = loader.load("images/asteroid4.png");
-                let asteroidBumpMap = loader.load("images/asteroid-displacement.jpg");
-
-                for (let i = 0; i < 20; i++) {
-                    let bGeo = new THREE.SphereGeometry(Math.random() * (3-1) + 1 + Math.random(), 32, 16);
-                    let asteroidTexture = Math.floor((Math.random() * (4-1) + 1));
-                    let bMat;
-                    switch(asteroidTexture){
-                        case 1: 
-                            bMat = new THREE.MeshPhongMaterial({
-                                map: asteroidTexture1,
-                                bumpMap: asteroidBumpMap,
-                                bumpScale: 0.1
-                            });
-                            break;
-                        case 2:
-                            bMat = new THREE.MeshPhongMaterial({
-                                map: asteroidTexture2,
-                                bumpMap: asteroidBumpMap,
-                                bumpScale: 0.1
-                            });
-                            break;
-                        case 3:
-                            bMat = new THREE.MeshPhongMaterial({
-                                map: asteroidTexture3,
-                                bumpMap: asteroidBumpMap,
-                                bumpScale: 0.1
-                            });
-                            break;  
-                        case 4:
-                            bMat = new THREE.MeshPhongMaterial({
-                                map: asteroidTexture4,
-                                bumpMap: asteroidBumpMap,
-                                bumpScale: 0.1
-                            });
-                            break;
-                    }
-
-                    let asteroid = new THREE.Mesh(bGeo, bMat);
-
-                    // dont forget bump map or displacement map
-
-                    // Randomize position and rotation
-                    asteroid.position.x = Math.random() * 100 - 50;
-                    asteroid.position.y = Math.random() * 100 - 50;
-                    asteroid.position.z = Math.random() * 100 - 50;
-                    asteroid.rotation.x = Math.random() * 2 * Math.PI;
-                    asteroid.rotation.y = Math.random() * 2 * Math.PI;
-                    asteroid.rotation.z = Math.random() * 2 * Math.PI;
-
-                    // Randomize scale
-                    let scale = 0.5 + Math.random() * 1.5;
-                    asteroid.scale.set(scale, scale, scale);
-
-                    asteroids.push(asteroid);
-                    scene.add(asteroid);
-                }
-
-                return asteroids;
-        }
-
-        let projectile;
-
-        // Define the gravity vector
-        const gravity = new THREE.Vector3(0, -0.05, 0);
-
-        function createProjectile() {
-            // Define the geometry and material for the projectile
-            const geometry = new THREE.SphereGeometry(0.1, 8, 8);
-            const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-
-            // Create the projectile mesh using the geometry and material
-            projectile = new THREE.Mesh(geometry, material);
-
-            // Set the initial position of the projectile to the camera position
-            projectile.position.copy(camera.position);
-
-            // Add the projectile to the scene
-            scene.add(projectile);
-        }
-
-
-        // Define a function to update the projectile position each frame
-        function updateProjectile() {
-        // Check if the projectile exists and has a velocity
-            if (projectile && projectile.velocity) {
-                // Update the position of the projectile based on its velocity
-                projectile.position.add(projectile.velocity);
-
-                // Check if the projectile has gone off-screen
-                if (projectile.position.distanceTo(camera.position) > 100) {
-                // Remove the projectile from the scene
-                scene.remove(projectile);
-
-                // Reset the projectile velocity
-                projectile.velocity = null;
-                }
-            }
-        }
-
-
-        //properties
-        //scene.background = new THREE.Color( 0xfafafa );
-        renderer.setSize( window.innerWidth, window.innerHeight );
-
-        //camera position
-        camera.position.z = 5;
-        camera.position.y = 0;
-
-        document.body.appendChild( renderer.domElement );
-        //LIGHTS
-        var directionalLight = new THREE.DirectionalLight({color: 0xFFFFFF, intensity:100});
-        directionalLight.position.set(0, 1, 0);
-        directionalLight.castShadow = true;
-        scene.add(directionalLight);
-
-        //Ambient Light
-        var ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.5)
-        scene.add(ambientLight);
-
-        // let grid = new THREE.GridHelper(100, 20, 0x0a0a0a, 0x0a0a0a);
-        // grid.position.set(0, -0.5, 0);
-        // scene.add(grid);
-
-        // Call the createProjectile function to create the projectile
-        //createProjectile();
-
-        // Add an event listener to listen for clicks on the canvas
-        document.addEventListener('mousedown', onMouseDown, false);
-
-        // Define the onMouseDown function
-        function onMouseDown(event) {
-            // Check if pointer lock controls are enabled
-            
-            if (controls.isLocked) {
-                // Calculate the direction vector from the camera to the mouse pointer
-                createProjectile();
-                const direction = new THREE.Vector3(
-                    event.movementX,
-                    event.movementY,
-                    1
-                ).unproject(camera)
-                    .sub(camera.position)
-                    .normalize();
-
-                // Set the velocity of the projectile based on the direction vector
-                const velocity = direction.multiplyScalar(5);
-
-                // Set the position of the projectile to the camera position
-                projectile.position.copy(camera.position);
-
-                // Set the velocity of the projectile
-                projectile.velocity = velocity;
-
-                // Add the projectile to the scene
-                scene.add(projectile);
-            }
-        }
-
-
-
-        let controls = new PointerLockControls(camera, renderer.domElement);
-
-        let clock = new THREE.Clock();
-
-        let btn1 = document.querySelector("#button1");
-
-        btn1.addEventListener("click", ()=>{
-            controls.lock();
-        });
-
-        let keyboard = [];
-        addEventListener('keydown',(e)=>{
-            keyboard[e.key] = true;
-        });
-
-        addEventListener('keyup',(e)=>{
-            keyboard[e.key] = false;
-        });
-
-        function processkeyboard(){
-            if(keyboard['w']){
-                controls.moveForward(0.2);
-            }
-            if(keyboard['s']){
-                controls.moveForward(-0.2);
-
-            }
-            if(keyboard['a']){
-                controls.moveRight(-0.2);
-
-            }
-            if(keyboard['d']){
-                controls.moveRight(0.2);
-            }
-        }
-
-
-
-        function animateAsteroids(time) {
-            const dt = clock.getDelta();
-
-            for (let asteroid of asteroids) {
-                // Independent movement for each asteroid
-                const movementOffset = asteroid.movementOffset || new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
-                asteroid.movementOffset = movementOffset;
-
-                asteroid.position.x += Math.cos(time / 1000 + movementOffset.x) * 0.1;
-                asteroid.position.y += Math.sin(time / 1000 + movementOffset.y) * 0.1;
-                asteroid.position.z += Math.cos(time / 1000 + movementOffset.z) * 0.1;
-                asteroid.rotation.x = time / 2000;
-                asteroid.rotation.y = time / 1000;
-            }
-
-            renderer.render(scene, camera);
-            }
-
-
-        function drawScene(){
-            
-            processkeyboard();
-            requestAnimationFrame(drawScene);
-            updateProjectile();
-            renderer.setAnimationLoop( animateAsteroids );
-            renderer.render(scene, camera);
-            
-        }
-        drawScene()
-        createAsteroids()
-    </script>
+    <script type="module" src="main.js"></script>
 </body>
 </html>
