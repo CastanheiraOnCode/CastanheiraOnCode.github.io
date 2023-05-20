@@ -1,53 +1,100 @@
+import * as THREE from 'three';
+import { minX, maxX, minY, maxY, minZ, maxZ, asteroids, scene, clock, renderer, camera, projectile } from './main.js';
+import { gltfLoader } from './main.js';
+export function createAsteroids() {
+    let loader = new THREE.TextureLoader();
+    loader.setPath('images/'); // Set the base path for loading textures
+
+    let asteroidTexture1 = loader.load("asteroid1.png");
+    let asteroidTexture2 = loader.load("asteroid2.png");
+    let asteroidTexture3 = loader.load("asteroid3.png");
+    let asteroidTexture4 = loader.load("asteroid4.png");
+    let asteroidDisplacementMap = loader.load("asteroid-displacement.jpg");
+
+    // Set texture wrapping and filtering options
+    asteroidTexture1.wrapS = THREE.RepeatWrapping;
+    asteroidTexture1.wrapT = THREE.RepeatWrapping;
+    asteroidTexture1.repeat.set(5, 6); // Adjust the repeat values
+    asteroidTexture1.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+    asteroidTexture2.wrapS = THREE.RepeatWrapping;
+    asteroidTexture2.wrapT = THREE.RepeatWrapping;
+    asteroidTexture2.repeat.set(3, 4); // Adjust the repeat values
+    asteroidTexture2.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+    asteroidTexture3.wrapS = THREE.RepeatWrapping;
+    asteroidTexture3.wrapT = THREE.RepeatWrapping;
+    asteroidTexture3.repeat.set(5, 6); // Adjust the repeat values
+    asteroidTexture3.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+    asteroidTexture4.wrapS = THREE.RepeatWrapping;
+    asteroidTexture4.wrapT = THREE.RepeatWrapping;
+    asteroidTexture4.repeat.set(5, 6); // Adjust the repeat values
+    asteroidTexture4.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
 
- 
- //INIT THREE JS
-var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera( 45, window.innerWidth/window.innerHeight, 0.1, 1000 );
-var renderer = new THREE.WebGLRenderer({antialias: true});
+    let asteroidMaterial1 = new THREE.MeshPhongMaterial({
+        map: asteroidTexture1,
+        displacementMap: asteroidDisplacementMap,
+        displacementScale: Math.random() * (0.8 - 0.3) + 0.3
+    });
 
-//properties
-scene.background = new THREE.Color( 0x000000 );
-renderer.setSize( window.innerWidth, window.innerHeight );
+    let asteroidMaterial2 = new THREE.MeshPhongMaterial({
+        map: asteroidTexture2,
+        displacementMap: asteroidDisplacementMap,
+        displacementScale: Math.random() * (0.8 - 0.3) + 0.3
+    });
 
-//camera position
-camera.position.z = 5;
-camera.position.y = 0;
+    let asteroidMaterial3 = new THREE.MeshPhongMaterial({
+        map: asteroidTexture3,
+        displacementMap: asteroidDisplacementMap,
+        displacementScale: Math.random() * (0.8 - 0.3) + 0.3
+    });
 
-document.body.appendChild( renderer.domElement );
-//LIGHTS
-var directionalLight = new THREE.DirectionalLight({color: 0xFFFFFF, intensity:100});
-directionalLight.position.set(0, 1, 0);
-directionalLight.castShadow = true;
-scene.add(directionalLight);
+    let asteroidMaterial4 = new THREE.MeshPhongMaterial({
+        map: asteroidTexture4,
+        displacementMap: asteroidDisplacementMap,
+        displacementScale: Math.random() * (0.8 - 0.3) + 0.3
+    });
 
-//Ambient Light
-var ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.5)
-scene.add(ambientLight);
+    let asteroidMaterials = [asteroidMaterial1, asteroidMaterial2, asteroidMaterial3, asteroidMaterial4];
 
-let grid = new THREE.GridHelper(100, 20, 0x0a0a0a, 0x0a0a0a);
-grid.position.set(0, -0.5, 0);
-scene.add(grid);
+    for (let i = 0; i < 20; i++) {
+        let bGeo = new THREE.SphereGeometry(Math.random() * (6 - 1) + 1 + Math.random(), 32, 16);
+        let asteroidMaterial = asteroidMaterials[Math.floor(Math.random() * 4)];
 
-let bGeo = new THREE.BoxGeometry(1, 1, 1);
-let bMat = new THREE.MeshBasicMaterial({color: 0x00ff00, wireframe: false});
-let cube = new THREE.Mesh(bGeo, bMat);
-scene.add(cube);
+        let asteroid = new THREE.Mesh(bGeo, asteroidMaterial);
 
+        // Randomize position and rotation within a specified range
+        asteroid.position.x = Math.random() * (maxX - minX) + minX;
+        asteroid.position.y = Math.random() * (maxY - minY) + minY;
+        asteroid.position.z = Math.random() * (maxZ - minZ) + minZ;
 
-//let controls = new THREE.PointerLockControls(camera, renderer.domElement);
+        // Randomize scale
+        let scale = 0.5 + Math.random() * 1.5;
+        asteroid.scale.set(scale, scale, scale);
 
-let clock = new THREE.Clock();
+        asteroids.push(asteroid);
+        scene.add(asteroid);
+    }
 
-let btn1 = document.querySelector("#button1");
-
-btn1.addEventListener("click", ()=>{
-    controls.lock();
-});
-
-function drawScene(){
-    renderer.render(scene, camera);
-    requestAnimationFrame(drawScene);
+    return asteroids;
 }
 
-drawScene()
+export function animateAsteroids(time) {
+    const dt = clock.getDelta();
+
+    for (let asteroid of asteroids) {
+        // Independent movement for each asteroid
+        const movementOffset = asteroid.movementOffset || new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
+        asteroid.movementOffset = movementOffset;
+
+        asteroid.position.x += Math.cos(time / 1000 + movementOffset.x) * 0.1;
+        asteroid.position.y += Math.sin(time / 1000 + movementOffset.y) * 0.1;
+        asteroid.position.z += Math.cos(time / 1000 + movementOffset.z) * 0.1;
+        asteroid.rotation.x = time / 2000;
+        asteroid.rotation.y = time / 1000;
+    }
+}
+
+export { scene, camera, renderer, asteroids };
