@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { minX, maxX, minY, maxY, minZ, maxZ, asteroids, scene, clock, renderer, camera, projectile } from './main.js';
 import { gltfLoader } from './main.js';
-export function createAsteroids() {
+export function createAsteroids(numAsteroids) {
     let loader = new THREE.TextureLoader();
     loader.setPath('images/'); // Set the base path for loading textures
 
@@ -59,7 +59,7 @@ export function createAsteroids() {
 
     let asteroidMaterials = [asteroidMaterial1, asteroidMaterial2, asteroidMaterial3, asteroidMaterial4];
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < numAsteroids; i++) {
         let bGeo = new THREE.SphereGeometry(Math.random() * (6 - 1) + 1 + Math.random(), 32, 16);
         let asteroidMaterial = asteroidMaterials[Math.floor(Math.random() * 4)];
 

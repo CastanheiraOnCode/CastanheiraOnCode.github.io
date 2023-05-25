@@ -68,3 +68,27 @@ canvas {
     color: white;
   }
   
+
+  .container {
+    position: relative;
+    width: 80%;
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: rgba(0, 0, 0, 0.5); /* Optional: Set a background color with transparency */
+  }
+  
+  .container img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  .container .content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #ffffff; /* Optional: Set a font color for the content */
+  }
+  

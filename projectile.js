@@ -2,11 +2,13 @@ import * as THREE from 'three'
 import {minX, maxX, minY, maxY, minZ, maxZ,asteroids,scene,clock,renderer,camera} from './main.js'
 
 let projectile;
-let points = 0
+export let points = 0
 // Define the gravity vector
 const gravity = new THREE.Vector3(0, -0.05, 0);
 const loader = new THREE.TextureLoader();
 const texture = loader.load("images/explosion_texture.png");
+
+
 export function createProjectile() {
     // Define the geometry and material for the projectile
     const geometry = new THREE.SphereGeometry(0.1, 8, 8);
@@ -145,7 +147,7 @@ export function updateProjectile() {
                 asteroids.splice(i, 1);
 
                 const pointsDisplay = document.getElementById('points-display');
-                pointsDisplay.textContent = points.toString();
+                pointsDisplay.textContent = "Score: " + points.toString();
                 
                 // Exit the loop since the asteroid is destroyed
                 break;
